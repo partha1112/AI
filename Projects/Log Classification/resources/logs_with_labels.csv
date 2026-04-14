@@ -1,0 +1,18 @@
+timestamp,source,log_message,target_label,label_predcited
+08-09-2025 18:58,ModernCRM,Email server encountered a sending fault,Error,HTTP_STATUS
+03-03-2025 17:11,ModernCRM,"nova.compute.claims [req-d6986b54-3735-4a42-9074-0ba7d9717de9 113d3a99c3da401fbd62cc2caa5b96d2 54fadb412c4e40cdbaed9335e4c35a9e - - -] [instance: af5f7392-f7d4-4298-b647-c98924c64aa1] memory limit: 96258.00 MB, free: 95746.00 MB",Resource Usage,Resource Usage
+12-07-2025 08:23,ModernCRM,Data replication task failed for shard 17,Error,SYSTEM_NOTIFICATION
+27-06-2025 07:20,ModernCRM,"nova.osapi_compute.wsgi.server [req-b9718cd8-f65e-49cc-8349-6cf7122af137 113d3a99c3da401fbd62cc2caa5b96d2 54fadb412c4e40cdbaed9335e4c35a9e - - -] 10.11.10.1 ""GET /v2/54fadb412c4e40cdbaed9335e4c35a9e/servers/detail HTTP/1.1"" status: 200 len: 1893 time: 0.2675118",HTTP Status,HTTP_STATUS
+1/14/2025 23:07,ModernCRM,Email service experiencing issues with sending,Critical Error,WORKFLOW_ERROR
+03-03-2025 17:11,ModernCRM,"nova.compute.claims [req-d6986b54-3735-4a42-9074-0ba7d9717de9 113d3a99c3da401fbd62cc2caa5b96d2 54fadb412c4e40cdbaed9335e4c35a9e - - -] [instance: af5f7392-f7d4-4298-b647-c98924c64aa1] memory limit: 96258.00 MB, free: 95746.00 MB",Resource Usage,Resource Usage
+01-04-2025 22:41,ModernCRM,Privilege elevation detected for user 5038,Security Alert,Security Alert
+05-01-2025 09:41,ModernCRM,Backup completed successfully.,System Notification,System Notification
+2/22/2025 17:49,ModernCRM,Account with ID 5351 created by User634.,User Action,User Action
+06-10-2025 16:55,LegacyCRM,Lead conversion failed for prospect ID 7842 due to missing contact information.,Workflow Error,WORKFLOW_ERROR
+24-06-2025 12:16,LegacyCRM,Customer follow-up process for lead ID 5621 failed due to missing next action,Workflow Error,SYSTEM_NOTIFICATION
+12/22/2025 10:40,ThirdPartyAPI,System component malfunction: component ID Component90,Critical Error,Critical Error
+03-05-2025 16:55,LegacyCRM,API endpoint 'getCustomerDetails' is deprecated and will be removed in version 3.2. Use 'fetchCustomerInfo' instead.,Deprecation Warning,DEPRECATION_WARNING
+09-10-2025 10:30,ModernHR,"nova.osapi_compute.wsgi.server [req-f0bffbc3-5ab0-4916-91c1-0a61dd7d4ec2 113d3a99c3da401fbd62cc2caa5b96d2 54fadb412c4e40cdbaed9335e4c35a9e - - -] 10.11.10.1 ""GET /v2/54fadb412c4e40cdbaed9335e4c35a9e/servers/detail HTTP/1.1"" Return code: 200 len: 1874 time: 0.2131531",HTTP Status,HTTP_STATUS
+03-01-2025 19:14,ModernHR,Shard 6 replication task ended in failure,Error,Error
+1/17/2025 1:29,AnalyticsEngine,Unauthorized access to data was attempted,Security Alert,Security Alert
+12-02-2025 10:42,ThirdPartyAPI,"nova.compute.claims [req-a07ac654-8e81-416d-bfbb-189116b07969 113d3a99c3da401fbd62cc2caa5b96d2 54fadb412c4e40cdbaed9335e4c35a9e - - -] [instance: bf8c824d-f099-4433-a41e-e3da7578262e] Total memory: 64172 MB, used: 512.00 MB",Resource Usage,Resource Usage
