@@ -43,7 +43,26 @@ if st.session_state.plan_generated:
             st.session_state.plan_generated = False
             
     with col2:
-        if st.button("No, Abort"):
-            st.error("Execution aborted for security reasons.")
-            # Reset state
+        st.subheader("Revise Plan")
+        feedback = st.text_area("Provide feedback to revise the plan:")
+        
+        if st.button("Revise & Regenerate"):
+            if feedback:
+                new_request = user_request + "\n\nUser Feedback for Revision:\n" + feedback
+                
+                # Increment thread_id to start a fresh execution graph and clear previous paused state
+                current_thread = int(st.session_state.config["configurable"]["thread_id"])
+                st.session_state.config["configurable"]["thread_id"] = str(current_thread + 1)
+                
+                with st.spinner("Re-analyzing with your feedback..."):
+                    current_state = st.session_state.graph.invoke({"user_request": new_request}, st.session_state.config)
+                    
+                st.session_state.plan = current_state.get("execution_plan", "No plan generated.")
+                st.rerun()
+            else:
+                st.warning("Please enter feedback before revising.")
+                
+        if st.button("Abort Entirely"):
+            st.error("Execution aborted.")
             st.session_state.plan_generated = False
+            st.rerun()
