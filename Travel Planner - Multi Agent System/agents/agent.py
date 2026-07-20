@@ -108,9 +108,8 @@ def response_agent(state : TravelState):
     ])
 
     return{
-        
-        "messages" : [response],
-        "llm_calls" : state.get("llm_calls", 0 ) + 1
+        "message": [response],
+        "llm_calls": state.get("llm_calls", 0) + 1
     }
 
 

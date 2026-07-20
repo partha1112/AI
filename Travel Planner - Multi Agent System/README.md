@@ -49,6 +49,18 @@ The application utilizes a LangGraph `StateGraph` where information flows sequen
 - **OpenAI (`gpt-4o-mini`):** The core LLM powering the agents' reasoning and generation.
 - **Tavily Search API:** Used for real-time web search capabilities (Hotels).
 
+## 🧪 Evaluation Setup
+
+A simple evaluation harness is included so you can benchmark the agent on sample travel prompts.
+
+### Run evaluation
+
+```bash
+uv run python eval_runner.py
+```
+
+This will run a few example cases and save results to `eval_results.json`.
+
 ## 🏃‍♂️ How to Run Locally
 
 1. **Environment Variables:** Ensure you have an `.env` file with the required API keys and database URL:

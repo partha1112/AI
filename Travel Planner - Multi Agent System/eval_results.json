@@ -1,0 +1,30 @@
+[
+  {
+    "name": "budget_goa_trip",
+    "origin": "India",
+    "destination": "Goa",
+    "days": 3,
+    "score": {
+      "has_destination": true,
+      "has_itinerary": true,
+      "has_hotel": true,
+      "has_flight": true,
+      "llm_calls": 4
+    },
+    "preview": "### Trip Summary\nPlanning a trip to North Goa? Here\u2019s a practical guide to help you enjoy your time while staying within budget. We\u2019ll cover flight information, hotel suggestions, a day-by-day itinerary, and an estimated budget.\n\n### Flight Information\nUnfortunately, it seems there is an issue with the flight search. Please check your flight origin or destination, as the information provided suggests that it's invalid. For booking, consider using reputable travel sites or agents.\n\n### Hotel Suggestions\nHere are some budget-friendly accommodations in North Goa:\n1. **Rahi Coral Beach Resort** \u2013 \u20b91036/night\n2. **Costa de Calangute Inn** \u2013 \u20b91968/night\n3. **Summerville Beach Resort** \u2013 \u20b91991/night\n\n### Day-by-Day Itinerary\n**Day 1: Arrival and Beach Day**\n- **Morning**: Arrive at Goa International Airport (Dabolim Airport) and check into your hotel.\n- **Lunch**: Enjoy local food at Baby Dune's Cafe near Calangute Beach.\n- **Afternoon**: Relax at Calangute Beach; try water sports.\n- **Dinner**: Experience seafood at Fisherman\u2019s Wharf.\n- **Night**: Explore nightlife at Titos Lane in Baga.\n\n**Day 2: Exploring Culture and More Beaches**\n- **Morning**: Visit Fort Aguada (free entry).\n- **Lun"
+  },
+  {
+    "name": "family_paris_trip",
+    "origin": "India",
+    "destination": "Paris",
+    "days": 5,
+    "score": {
+      "has_destination": true,
+      "has_itinerary": true,
+      "has_hotel": true,
+      "has_flight": true,
+      "llm_calls": 4
+    },
+    "preview": "### Trip Summary\nYou're all set for a fantastic 5-day adventure in Paris! This trip combines iconic sights, delightful cuisine, and a touch of history, perfect for creating memorable experiences.\n\n### Flight Information\nMake sure to book round-trip flights from your city in India to Charles de Gaulle Airport (CDG) in Paris. Since live flight APIs may not provide ticket prices and availabilities, I recommend checking budget airlines or special deals for the best fares.\n\n### Hotel Suggestions\nHere are some budget-friendly hotel options that come highly recommended:\n1. **H\u00f4tel Astra Op\u00e9ra** - Great reviews and affordable for families.\n2. **H\u00f4tel Mayet** - Known for its good service and comfortable rooms.\n3. **Hotel Augustin - Astotel** - Perfect for families with reasonable prices.\n4. **Hotel des Grands Hommes** - Offers nice balcony views and family-friendly rooms.\n\n### Day-by-day Itinerary\nHere's a simple and time-saving itinerary to follow:\n\n#### **Day 1: Arrival and Montmartre**\n- Arrive at CDG and check into your hotel.\n- Visit **Sacr\u00e9-C\u0153ur Basilica** for stunning views.\n- Explore the charming streets of Montmartre.\n\n#### **Day 2: Iconic Landmarks**\n- Visit the **Eiffel Tower** i"
+  }
+]
