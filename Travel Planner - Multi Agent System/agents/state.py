@@ -5,6 +5,7 @@ import operator
 class TravelState(TypedDict):
     message : Annotated[list[AnyMessage], operator.add]
     user_query: str
+    user_comments: str
     origin: str
     destination: str
     days: int

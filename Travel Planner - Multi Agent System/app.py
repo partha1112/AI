@@ -1,6 +1,7 @@
 import streamlit as st
 import uuid
-from backend import run_travel_planner, get_travel_state, resume_travel_planner
+from src.backend import run_travel_planner, get_travel_state, resume_travel_planner
+from guardrails.guardrails_engine import GuardrailsBlocked
 
 st.set_page_config(page_title="AI Travel Planner", page_icon="✈️", layout="centered")
 
@@ -19,7 +20,7 @@ except Exception:
 # Determine if we are waiting for human approval
 is_paused = current_state and current_state.next and "response_agent" in current_state.next
 
-if is_paused:
+if is_paused and current_state is not None:
     st.info("The agent has drafted an itinerary for you. Please review and confirm it below.")
     itinerary = current_state.values.get("itinerary_result", "No itinerary found.")
     st.markdown("### Draft Itinerary")
@@ -30,7 +31,7 @@ if is_paused:
             resume_travel_planner(st.session_state.session_id)
             st.rerun()
             
-elif current_state and not current_state.next and current_state.values.get("itinerary_result") and len(current_state.values.get("message", [])) >= 2:
+elif current_state is not None and not current_state.next and current_state.values.get("itinerary_result") and len(current_state.values.get("message", [])) >= 2:
     # The graph is finished
     st.success("Your trip is ready!")
     final_message = current_state.values.get("message", [])[-1].content
@@ -54,6 +55,8 @@ else:
             
         days = st.number_input("Number of Days", min_value=1, max_value=30, value=7, step=1)
         
+        comments = st.text_area("Tell us more about your trip", placeholder="Any preferences, budget notes, or special requests")
+        
         submit_button = st.form_submit_button("Plan My Trip 🚀")
 
     if submit_button:
@@ -62,7 +65,10 @@ else:
         else:
             with st.spinner("Our AI agents are building your itinerary. This may take a moment..."):
                 try:
-                    run_travel_planner(origin, destination, days, st.session_state.session_id)
+                    run_travel_planner(origin, destination, days, comments, st.session_state.session_id)
                     st.rerun()
+                except GuardrailsBlocked as e:
+                    st.warning(f"Your request has been blocked by safety guardrails")
                 except Exception as e:
                     st.error(f"An error occurred: {e}")
+

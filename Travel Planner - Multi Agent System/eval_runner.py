@@ -42,6 +42,7 @@ def run_evaluation(output_path: str | None = None) -> list[dict[str, Any]]:
             case["origin"],
             case["destination"],
             case["days"],
+            "",
             session_id,
         )
 
