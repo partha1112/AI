@@ -1,9 +1,5 @@
 from backend.memory.session_update import update_session
 from backend.memory.session import Session
-import threading
-import asyncio
-from backend.agents.summarize_agent import sumarize_episode
-# from util.context_util import check_context_size, context_score
 from backend.schemas import RouteResponse
 from backend.agents.GeneralState import AgentSate
 from backend.agents.llm import llm
@@ -17,7 +13,7 @@ llm_with_structured_output = llm.with_structured_output(RouteResponse)
 sanitizer = PIISanitizer()
 
 
-def invoke_coordinator(state:AgentSate):
+def invoke_coordinator(state: AgentSate):
 
     date_range = resolve_transaction_dates(state.user_message)
 
@@ -36,14 +32,6 @@ def invoke_coordinator(state:AgentSate):
     accounts_response_revised = ""
     transaction_response_revised = ""
     service_response_revised = ""
-
-    # if(check_context_size(state.accounts_response)):
-    #     accounts_response_revised = context_score(state.accounts_response, state)    
-    # if(check_context_size(state.transaction_response)):
-    #     transaction_response_revised = context_score(state.transaction_response, state)    
-    # if(check_context_size(state.service_response)):
-    #     service_response_revised = context_score(state.service_response, state)    
-    
 
     prompt = f"""You are the central coordinator for a banking assistant system.
     Your only job is to choose the next agent and provide short instructions.
@@ -163,43 +151,32 @@ def invoke_coordinator(state:AgentSate):
 
     """
 
-    
-
     messages = [SystemMessage(content=prompt), HumanMessage(content=state.user_message)]
     response = llm_with_structured_output.invoke(messages)
 
     instructions = response.instructions
 
     print(f"invoke_coordinator Response : {response}")
-  
     print(response.transaction_status)
-    # threading.Thread(
-    #     target=lambda s: asyncio.run(sumarize_episode(s)),
-    #     args=(state,)
-    #     ).start()
 
     if response.next_agent == "FINISH":
-        def _save_session(s: AgentSate):
-            svc = []
-            if s.accounts_response    : svc.append("ACCOUNTS")
-            if s.transaction_response : svc.append("TRANSACTIONS")
-            if s.service_response     : svc.append("SERVICE")
-            svc_str = ','.join(svc)
+        svc = []
+        if state.accounts_response: svc.append("ACCOUNTS")
+        if state.transaction_response: svc.append("TRANSACTIONS")
+        if state.service_response: svc.append("SERVICE")
+        svc_str = ','.join(svc)
 
-            ctx: list[str] = []
-            if s.accounts_response    : ctx.extend(s.accounts_response)
-            if s.transaction_response : ctx.extend(s.transaction_response)
-            if s.service_response     : ctx.extend(s.service_response)
-            ctx_str = ','.join(ctx)
+        ctx = []
+        if state.accounts_response: ctx.extend(state.accounts_response)
+        if state.transaction_response: ctx.extend(state.transaction_response)
+        if state.service_response: ctx.extend(state.service_response)
+        ctx_str = ','.join(ctx)
 
-            update_session(Session(
-                service=svc_str,
-                context=ctx_str,
-                session_id=str(s.thread_id)
-            ))
-
-        threading.Thread(target=_save_session, args=(state,)).start()
-        
+        update_session(Session(
+            service=svc_str,
+            context=ctx_str,
+            session_id=str(state.thread_id)
+        ))
 
     return {
         "next_node": response.next_agent,
@@ -208,4 +185,3 @@ def invoke_coordinator(state:AgentSate):
         "user_message_unmasked": state.user_message_unmasked,
         "account_number": state.account_number
     }
-    

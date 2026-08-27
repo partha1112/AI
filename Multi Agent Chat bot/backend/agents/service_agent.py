@@ -18,7 +18,7 @@ server_params_transfer = StdioServerParameters(
 )
 
 
-def invoke_service(state: AgentSate):
+async def invoke_service(state: AgentSate):
     user_message = state.user_message_unmasked or state.user_message
 
     prompt = f"""You are a helpful service specialist.
@@ -39,27 +39,20 @@ def invoke_service(state: AgentSate):
     Follow these rules and produce a concise, user-facing response.
     """
 
-    async def _run():
-        async with stdio_client(server_params) as (read1, write1):
-            async with stdio_client(server_params_transfer) as (read2, write2):
-                async with ClientSession(read1, write1) as session1:
-                    async with ClientSession(read2, write2) as session2:
-                        await session1.initialize()
-                        await session2.initialize()
+    async with stdio_client(server_params) as (read1, write1):
+        async with stdio_client(server_params_transfer) as (read2, write2):
+            async with ClientSession(read1, write1) as session1:
+                async with ClientSession(read2, write2) as session2:
+                    await session1.initialize()
+                    await session2.initialize()
 
-                        tools1 = await load_mcp_tools(session1)
-                        tools2 = await load_mcp_tools(session2)
+                    tools1 = await load_mcp_tools(session1)
+                    tools2 = await load_mcp_tools(session2)
 
-                        tools = tools1 + tools2
-                        agent = create_react_agent(llm, tools)
-                        response = await agent.ainvoke({"messages": [("user", prompt)]})
-                        return response["messages"][-1].content
-
-    loop = asyncio.new_event_loop()
-    try:
-        final_message = loop.run_until_complete(_run())
-    finally:
-        loop.close()
+                    tools = tools1 + tools2
+                    agent = create_react_agent(llm, tools)
+                    response = await agent.ainvoke({"messages": [("user", prompt)]})
+                    final_message = response["messages"][-1].content
 
     print("service response : " + final_message)
 

@@ -1,15 +1,26 @@
-import asyncio
 import sys
-from backend.schemas import ChatResponse
-from backend.schemas import ChatRequest
-from fastapi import FastAPI
-from backend.agents.graphBuilder import workflow
-# from backend.guardrails.input_validator import validate_input, scop_validation
+import asyncio
+
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 import random
-from util.ainvoke import resolve_ainvoke
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+import uvicorn
 
+from backend.schemas import ChatResponse, ChatRequest
+from backend.agents.graphBuilder import get_workflow
 
-app = FastAPI()
+workflow_app = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global workflow_app
+    workflow_app = await get_workflow()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 @app.post("/chatbot")
 async def chat(request: ChatRequest):
@@ -18,29 +29,23 @@ async def chat(request: ChatRequest):
     if not thread_id:
         thread_id = str(random.randint(1000, 9999))
 
-
     try:
-        inputs = {"user_message": request.message}
-        # validate_input(request.message)
-        # scop_validation(request.message)
-
         config = {
             "configurable": {
                 "thread_id": thread_id
             }
         }
 
-        # Build initial workflow state matching `AgentSate` (expects `user_message`).
-        inputs = {"user_message": request.message,
-                  "account_number": request.account_number,
-                  "current_response":{},
-                  "thread_id": thread_id}
+        input_state = {
+            "user_message": request.message,
+            "account_number": request.account_number,
+            "current_response": {},
+            "thread_id": thread_id
+        }
 
-        # Run sync workflow in a                        thread so MCP agents can create their own event loops
-        res = await workflow.ainvoke(inputs, config)
- 
-        # Choose the first available specialist response.
-        response_text = res.get("coordinator_response")[-1]
+        result = await workflow_app.ainvoke(input_state, config=config)
+
+        response_text = result.get("coordinator_response")[-1]
 
         return ChatResponse(response=response_text, thread_id=thread_id)
     except Exception as e:
@@ -49,3 +54,6 @@ async def chat(request: ChatRequest):
             response=traceback.format_exc(),
             thread_id=thread_id
         )
+
+if __name__ == "__main__":
+    uvicorn.run("backend.api:app", host="0.0.0.0", port=8000, reload=True, loop="asyncio")

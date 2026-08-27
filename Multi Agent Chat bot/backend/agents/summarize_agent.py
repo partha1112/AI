@@ -7,12 +7,15 @@ from backend.memory.vector_store import get_index
 from uuid import uuid4
 
 
-
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 llm_with_episode_structure = llm.with_structured_output(SummarizeSchema, method="function_calling")
 
 index = get_index()
+
+def get_embedding(text):
+    response = embedding_model.encode(text)
+    return response.tolist()
 
 def sumarize_episode(state : AgentSate):
     prompt = f"""You are a summarization agent. Your task is to summarize the following conversation history and state into a very simple 1 or 2 line summary. This summary will be stored in a vector database.
@@ -42,10 +45,9 @@ def sumarize_episode(state : AgentSate):
 
     print(f"summarize_agent Response : {response.summary}")
 
-    episode_data = response.summary
+    episode_data = response
     vector = get_embedding(episode_data.summary)
 
-    
     metadata_payload = {
         "thread_id": state.thread_id,
         "summary": episode_data.summary,
@@ -65,14 +67,6 @@ def sumarize_episode(state : AgentSate):
         }]
     )
 
-
     print(res)
 
     return res
-
-    
-
-def  get_embedding(text):
-    response = embedding_model.encode(text)
-    return response.tolist()
-
