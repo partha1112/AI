@@ -11,6 +11,7 @@ import uvicorn
 
 from backend.schemas import ChatResponse, ChatRequest
 from backend.agents.graphBuilder import get_workflow
+from langchain_core.messages import HumanMessage
 
 workflow_app = None
 
@@ -40,14 +41,15 @@ async def chat(request: ChatRequest):
             "user_message": request.message,
             "account_number": request.account_number,
             "current_response": {},
-            "thread_id": thread_id
+            "thread_id": thread_id,
+            "messages": [HumanMessage(content=request.message, name="USER")]
         }
 
         result = await workflow_app.ainvoke(input_state, config=config)
 
-        response_text = result.get("coordinator_response")[-1]
+        messages = result["coordinator_response"]
 
-        return ChatResponse(response=response_text, thread_id=thread_id)
+        return ChatResponse(response=messages, thread_id=thread_id)
     except Exception as e:
         import traceback
         return ChatResponse(

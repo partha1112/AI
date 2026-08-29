@@ -15,7 +15,7 @@ async def fetch_account_details(acc_number: int) -> dict:
     conn = await asyncpg.connect(DB_URI)
     try:
         row = await conn.fetchrow(f"""
-            select "accNumber", balance from public."accountsinformation"
+            select "accNumber", balance from public."accounts"
             where "accNumber"={acc_number}
             """
         )

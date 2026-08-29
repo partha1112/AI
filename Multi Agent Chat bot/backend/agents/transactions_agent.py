@@ -1,3 +1,4 @@
+from langchain_core.messages import AIMessage
 from backend.agents.GeneralState import AgentSate
 from backend.agents.llm import llm
 
@@ -43,6 +44,6 @@ async def invoke_transaction(state: AgentSate):
 
             print("transactions response : " + final_message)
             return {
-                "transaction_response": [final_message],
-                "current_response": {'transaction_response': final_message}
+                "messages": [AIMessage(content=final_message, name="TRANSACTION")],
+                "current_response": {'TRANSACTION': final_message}
             }

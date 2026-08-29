@@ -1,3 +1,4 @@
+from backend.agents.accounts_agent import invoke_accounts
 import os
 import psycopg
 from dotenv import load_dotenv
@@ -8,7 +9,6 @@ from langgraph.graph import StateGraph, START, END
 from backend.agents.transactions_agent import invoke_transaction
 from backend.agents.GeneralState import AgentSate
 from backend.agents.service_agent import invoke_service
-from backend.agents.accounts_agent import invoke_accounts
 from backend.agents.coordinator import invoke_coordinator
 
 load_dotenv()

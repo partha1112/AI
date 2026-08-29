@@ -1,3 +1,4 @@
+from langchain_core.messages import AIMessage
 import asyncio
 from backend.agents.GeneralState import AgentSate
 from backend.agents.llm import llm
@@ -25,13 +26,12 @@ async def invoke_service(state: AgentSate):
     Your job is to analyze the user input and respond with the service information requested by the coordinator.
 
     coordinator_response = {state.coordinator_response}
-    user_message = {user_message}
     account_number = {state.account_number}
 
     Important instructions:
-    - If the user explicitly requests moving money between accounts, call the MCP tool `transfer_amount(from_acc:int, to_acc:int, amount:float)`.
-        Provide exact numeric account IDs and a positive amount when invoking the tool.
-    - Only call `transfer_amount` when the user asks to perform a transfer; do not call it for balance inquiries or other service requests.
+    - If the coordinator explicitly requests moving money between accounts, call the MCP tool `guarded_transfer(from_acc:int, to_acc:int, amount:float, approved:bool)`.
+        Provide exact numeric account IDs and a positive amount when invoking the tool. Set approved=True to bypass approval, or False if approval is needed.
+    - Only call `guarded_transfer` when the coordinator asks to perform a transfer; do not call it for balance inquiries or other service requests.
     - After calling the tool, return a brief confirmation summarizing the result (success or error). Do not display full account numbers in the final message—mask them (e.g., show last 4 digits) or summarize.
     - For non-transfer service requests, answer using available account/service information without invoking transfer tools.
     - If required details are missing (from/to account numbers or amount), ask a concise clarifying question instead of attempting a transfer.
@@ -57,6 +57,6 @@ async def invoke_service(state: AgentSate):
     print("service response : " + final_message)
 
     return {
-        "service_response": [final_message],
-        "current_response": {"service_response": final_message}
+        "messages": [AIMessage(content=final_message, name="SERVICE")],
+        "current_response": {"SERVICE": final_message}
     }

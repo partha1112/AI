@@ -26,11 +26,11 @@ async def transfer_amount(from_acc: int, to_acc: int, amount: float) -> dict:
         async with conn.transaction():
             # Lock both account rows for update to avoid race conditions
             from_row = await conn.fetchrow(
-                'SELECT balance FROM public."accountsinformation" WHERE "accNumber" = $1 FOR UPDATE',
+                'SELECT balance FROM public."accounts" WHERE "accNumber" = $1 FOR UPDATE',
                 from_acc,
             )
             to_row = await conn.fetchrow(
-                'SELECT balance FROM public."accountsinformation" WHERE "accNumber" = $1 FOR UPDATE',
+                'SELECT balance FROM public."accounts" WHERE "accNumber" = $1 FOR UPDATE',
                 to_acc,
             )
 
@@ -49,12 +49,12 @@ async def transfer_amount(from_acc: int, to_acc: int, amount: float) -> dict:
             new_to = to_balance + amount
 
             await conn.execute(
-                'UPDATE public."accountsinformation" SET balance = $1 WHERE "accNumber" = $2',
+                'UPDATE public."accounts" SET balance = $1 WHERE "accNumber" = $2',
                 new_from,
                 from_acc,
             )
             await conn.execute(
-                'UPDATE public."accountsinformation" SET balance = $1 WHERE "accNumber" = $2',
+                'UPDATE public."accounts" SET balance = $1 WHERE "accNumber" = $2',
                 new_to,
                 to_acc,
             )
@@ -78,7 +78,7 @@ async def guarded_transfer(from_acc: int, to_acc: int, amount: float, approved: 
     conn = await asyncpg.connect(DB_URI)
     try:
         row = await conn.fetchrow(
-            'SELECT balance, is_prime FROM public."accountsinformation" WHERE "accNumber" = $1',
+            'SELECT balance, is_prime FROM public."accounts" WHERE "accNumber" = $1',
             from_acc,
         )
         if not row:
