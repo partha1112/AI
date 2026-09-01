@@ -113,7 +113,9 @@ async def guarded_transfer(from_acc: int, to_acc: int, amount: float, approved: 
 
         # Approved: perform the transfer using existing transfer_amount tool
         result = await transfer_amount(from_acc, to_acc, amount)
-        return result
+        if result.get("error") or result.get("success")== False:
+            return {"error": result["error"]}
+        return {"success": True, "from_acc": from_acc, "to_acc": to_acc, "amount": amount, "message": "Transfer completed successfully."}
     finally:
         await conn.close()
 

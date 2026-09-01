@@ -1,3 +1,7 @@
+
+from datetime import datetime
+from backend.memory.Session import Session
+from backend.memory.session_update import get_session, create_session, update_session
 import sys
 import asyncio
 
@@ -26,9 +30,20 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/chatbot")
 async def chat(request: ChatRequest):
     thread_id = request.thread_id
-
     if not thread_id:
         thread_id = str(random.randint(1000, 9999))
+
+    session = get_session(thread_id)
+    
+    if session and session.last_activity:
+        last_activity_time = (datetime.now() - session.last_activity).total_seconds() 
+        if last_activity_time > 3600:
+            session.status = "INACTIVE"
+            thread_id = str(random.randint(1000, 9999))
+            update_session(session.status, datetime.now(), thread_id)
+    
+    if not session or session.status == "INACTIVE":
+        session = create_session(Session(session_id=thread_id, account_id=request.account_number, status="ACTIVE", crearted_at=datetime.now(), last_activity=datetime.now()))
 
     try:
         config = {

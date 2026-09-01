@@ -5,7 +5,7 @@ from datetime import date
 from sentence_transformers import SentenceTransformer
 from backend.memory.vector_store import get_index
 from uuid import uuid4
-from backend.memory.session import Session
+from backend.memory.Session import Session
 import os
 
 
@@ -26,11 +26,11 @@ def get_embedding(text):
     response = embedding_model.encode(text)
     return response.tolist()
 
-def sumarize_episode(session : Session, state : AgentSate):
+def sumarize_episode( state : AgentSate):
     prompt = f"""You are a summarization agent. Your task is to summarize the following conversation history and state into a very simple 1 or 2 line summary. This summary will be stored in a vector database.
 
     State Details:
-    session details : {session}
+    session details : {state.messages}
 
     Create an episode summary using the provided details. 
     - Use the user's account number for 'user_id'.
