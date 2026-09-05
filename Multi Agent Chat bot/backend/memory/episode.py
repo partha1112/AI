@@ -5,7 +5,7 @@ from typing import Optional
 
 @dataclass
 class Episode:
-    user_id     : str
+    account_number: str
     thread_id   : str
     event_type  : str
     summary     : str

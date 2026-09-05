@@ -1,3 +1,4 @@
+from backend.memory.vector_store import get_summary
 from datetime import datetime
 from backend.memory.session_update import update_session
 from backend.agents.summarize_agent import sumarize_episode
@@ -38,7 +39,8 @@ async def invoke_coordinator(state: AgentSate):
         )
         
     
-
+    user_summary = get_summary(state.user_message, state.account_number)
+    print(f"user summary : {user_summary}")
     
 
     messages_history = []
@@ -537,6 +539,20 @@ async def invoke_coordinator(state: AgentSate):
 
     NEVER SEND THE SAME COMPLETED REQUEST TO A SPECIALIST AGAIN.
     
+    ---------------------
+    USER SUMMARY : {user_summary}
+    - Use user summary to refer the previous transactions made by the users ONLY IF USER SUMMARY IS NOT EMPTY.
+    - if the current user message is related to the previous transaction, gather the required details from this summary
+    - For Example: Current user message: Get my last transaction
+                   User Summary: User sent 2$ to accouunt 10001, date: 2026-09-01T23:09:59+05:30
+                   
+                    Coordinator response :
+                    next_node: FINISH
+                    instructions: Your last transaction was sending 2$ to account 10001 on 2026-09-01T23:09:59+05:30
+                    Do you need anything else?
+
+    - 
+
 
     """
 
