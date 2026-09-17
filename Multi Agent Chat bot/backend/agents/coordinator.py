@@ -5,14 +5,12 @@ from backend.agents.summarize_agent import sumarize_episode
 from backend.schemas import RouteResponse
 from backend.agents.GeneralState import AgentSate
 from backend.agents.llm import llm
-from backend.guardrails.PIISaniatizer import PIISanitizer
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from util.date_util import resolve_transaction_dates
 
 
 llm_with_structured_output = llm.with_structured_output(RouteResponse)
 
-sanitizer = PIISanitizer()
 
 
 async def invoke_coordinator(state: AgentSate):

@@ -3,7 +3,7 @@ from __future__ import annotations
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
-from backend.guardrails.AccountNumberRecognizer import RecognizeAccountNumber
+from backend.guardrailsAI.AccountNumberRecognizer import RecognizeAccountNumber
 
 class PIISanitizer:
     def __init__(self):

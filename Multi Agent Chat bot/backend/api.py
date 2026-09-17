@@ -1,4 +1,6 @@
 
+
+from backend.guardrailsAI.input_validator import validate_input
 from datetime import datetime
 from backend.memory.Session import Session
 from backend.memory.session_update import get_session, create_session, update_session
@@ -29,6 +31,12 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post("/chatbot")
 async def chat(request: ChatRequest):
+    validated_message = validate_input(request.message)
+    if validated_message["is_valid"] == False:
+        return ChatResponse(
+            response=validated_message["error"],
+            thread_id=request.thread_id
+        )
     thread_id = request.thread_id
     if not thread_id:
         thread_id = str(random.randint(1000, 9999))
