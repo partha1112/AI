@@ -1,0 +1,17 @@
+name: Hellow world
+
+on: push
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Print on push
+      run: echo "Hello on push event"
+    - name: show variables
+      run: |
+        echo "runner is : $RUNNER_OS"
+        echo "repo is : $GITHUB_REPOSITORY"
+        echo "job id is : $GITHUB_JOB"
+
+  
