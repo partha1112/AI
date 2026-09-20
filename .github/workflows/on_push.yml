@@ -1,4 +1,4 @@
-name: Hellow world
+name: on push event
 
 on: push
 
