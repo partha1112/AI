@@ -3,7 +3,7 @@ name: Hellow world
 on: workflow_dispatch
 
 jobs:
-  Build
+  Build:
     runs-on: ubuntu-latest
     steps:
     - name: Print hello world Build
@@ -16,9 +16,8 @@ jobs:
       run: echo "Hello world deploy job"
 
     - name: print miltiple line
-    run: |
-    echo "pipe command"
-    echo "runner is : $RUNNER_OS"
-    echo "repo is : $GITHUB_REPOSITORY"
-    echo "job id is : $GITHUB_JOB"
-  
+      run: |
+        echo "pipe command"
+        echo "runner is : $RUNNER_OS"
+        echo "repo is : $GITHUB_REPOSITORY"
+        echo "job id is : $GITHUB_JOB"
