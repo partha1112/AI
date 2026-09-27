@@ -1,5 +1,4 @@
 from presidio_analyzer import (
-    AnalyzerEngine,
     Pattern,
     PatternRecognizer
 )

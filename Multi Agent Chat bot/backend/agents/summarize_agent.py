@@ -7,14 +7,14 @@ from datetime import date
 from backend.memory.vector_store import get_index
 from uuid import uuid4
 from backend.memory.Session import Session
-
+from langsmith import traceable
 
 
 llm_with_episode_structure = llm.with_structured_output(SummarizeSchema, method="function_calling")
 
 index = get_index()
 
-
+@traceable(name="summarize_episode", run_type="agent")
 def sumarize_episode( state : AgentSate):
     prompt = f"""You are a summarization agent. Your task is to summarize the following conversation history and state into a very simple 1 or 2 line summary. This summary will be stored in a vector database.
 

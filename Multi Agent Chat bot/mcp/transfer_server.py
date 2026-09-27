@@ -13,9 +13,15 @@ mcp = FastMCP()
 DB_URI = os.getenv("DB_URI")
 
 
-async def transfer_amount(from_acc: int, to_acc: int, amount: float) -> dict:
-    """Transfer `amount` from `from_acc` to `to_acc`.
+async def transfer_amount(amount: float) -> dict:
 
+    from_acc = os.getenv("CUSTOMER_ACCOUNT_NUMBER")
+    to_acc = os.getenv("ACCOUNT_NUMBER_1")
+    
+    if not from_acc or not to_acc:
+        return {"error": "Account number is not available"}
+
+    """Transfer `amount` from `from_acc` to `to_acc`.
     Returns a dict with success or an error message.
     """
     if amount is None or amount <= 0:

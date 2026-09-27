@@ -1,3 +1,6 @@
+import re
+from backend.guardrailsAI.PIISaniatizer import PIISanitizer
+from langsmith import traceable
 from backend.memory.vector_store import get_summary
 from datetime import datetime
 from backend.memory.session_update import update_session
@@ -9,12 +12,14 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from util.date_util import resolve_transaction_dates
 
 
+
 llm_with_structured_output = llm.with_structured_output(RouteResponse)
 
+pIIsaniatizer = PIISanitizer()
 
-
+@traceable(name="invoke_coordinator", run_type="agent")
 async def invoke_coordinator(state: AgentSate):
-
+    
     if any(word in state.user_message.lower() for word in ["exit", "bye", "quit", "done", "thank you", "thanks"]):
         sumarize_episode(state)
         update_session("INACTIVE", datetime.now(), state.thread_id)
@@ -23,10 +28,18 @@ async def invoke_coordinator(state: AgentSate):
             "messages": [AIMessage(content="Thank you for reaching out! Have a great day.", name="coordinator")]
         }
     
+    pii_masking_dict = pIIsaniatizer.mask(state.user_message)
+    print(f"sanitized_message : {pii_masking_dict}")
+
+    if pii_masking_dict.get("user_message_masked"):
+        state.user_message_masked = pii_masking_dict["user_message_masked"]
+    
+    if pii_masking_dict.get("pii_mapping"):
+        state.pii_mapping = pii_masking_dict["pii_mapping"]
+
     date_range = resolve_transaction_dates(state.user_message)
 
     user_message_actual = state.user_message
-    state.user_message_unmasked = user_message_actual
 
     date_context = ""
     if date_range:
@@ -44,7 +57,6 @@ async def invoke_coordinator(state: AgentSate):
     messages_history = []
 
     for msg in state.messages:
-
         if isinstance(msg, HumanMessage):
             role = "USER"
 
@@ -59,7 +71,31 @@ async def invoke_coordinator(state: AgentSate):
     messages_history_str = "\n".join(messages_history)
 
 
-    prompt = f""" 
+    prompt = get_coordinator_prompt(state, date_context, user_summary, messages_history_str)
+
+    messages = [SystemMessage(content=prompt), HumanMessage(content=state.user_message_masked)]
+    response = llm_with_structured_output.invoke(messages)
+
+    instructions = response.instructions
+
+    print(f"invoke_coordinator Response : {response}")
+    print(response.transaction_status)
+
+    return {
+        "next_node": response.next_agent,
+        "coordinator_response": instructions,
+        "messages": [AIMessage(content=instructions, name="COORDINATOR")],
+        "user_message": state.user_message,
+        "user_message_masked": state.user_message_masked,
+        "pii_mapping": state.pii_mapping,
+        "account_number": state.account_number
+    }
+
+
+
+
+def get_coordinator_prompt(state: AgentSate, date_context: str, user_summary: str, messages_history_str: str) -> str:
+    return f""" 
     
     You are the Coordinator Agent for a banking assistant.
 
@@ -78,16 +114,6 @@ async def invoke_coordinator(state: AgentSate):
     - transactions
     - service
     - FINISH
-
-    USER ACCOUNT INFORMATION
-
-    User account number:
-    {state.account_number}
-
-    This is the user's account number.
-
-    If the CURRENT USER MESSAGE does not specify a source account,
-    use this account number as the source account.
 
 
     ==================================================
@@ -142,22 +168,22 @@ async def invoke_coordinator(state: AgentSate):
     Example:
 
     CURRENT USER MESSAGE:
-    transfer 2$ to account_number 100007
+    transfer 2$ to account_number ACCOUNT_NUMBER_1
 
     CURRENT_RESPONSE:
-    The transfer of $2 from account ****1 to account ****7 has been successfully completed.
+    The transfer of $2 from account CUSTOMER_ACCOUNT_NUMBER to account ACCOUNT_NUMBER_1 has been successfully completed.
 
     Correct:
 
     next_agent = FINISH
 
-    instructions = The transfer of $2 from account ****1 to account ****7 has been successfully completed.
+    instructions = The transfer of $2 from account CUSTOMER_ACCOUNT to account ACCOUNT_NUMBER_1 has been successfully completed.
 
     Incorrect:
 
     next_agent = service
 
-    instructions = TRANSFER from_account_number=100001 to_account_number=100007 amount=2
+    instructions = TRANSFER from_account_number=CUSTOMER_ACCOUNT_NUMBER to_account_number=ACCOUNT_NUMBER_1 amount=2
 
 
     ==================================================
@@ -172,10 +198,10 @@ async def invoke_coordinator(state: AgentSate):
     For example:
 
     CURRENT USER MESSAGE:
-    transfer 2$ to account_number 100007
+    transfer 2$ to account_number ACCOUNT_NUMBER_1
 
     CURRENT_RESPONSE:
-    The transfer of $2 from account ****1 to account ****7 has been successfully completed.
+    The transfer of $2 from account CUSTOMER_ACCOUNT_NUMBER to account ACCOUNT_NUMBER_1 has been successfully completed.
 
     The correct decision is FINISH because the request has already been completed.
 
@@ -287,33 +313,18 @@ async def invoke_coordinator(state: AgentSate):
     - to_account_number
     - amount
 
+    - Use CUSTOMER_ACCOUNT_NUMBER as the default source account.
 
-    Source account:
+    - Extract the destination account and transfer amount from the CURRENT USER MESSAGE.
 
-    Use {state.account_number} unless the CURRENT USER MESSAGE explicitly
-    specifies another source account.
+    - Do NOT use any previous message history to extract the destination account or amount.
 
+    - Do NOT repeat an already-completed transfer.
 
-    Destination account:
-
-    Extract the destination account number from the CURRENT USER MESSAGE.
-
-
-    Amount:
-
-    Extract the transfer amount from the CURRENT USER MESSAGE.
-
-    Remove currency symbols such as $, €, or £.
-
-    The amount must be numeric.
-
-
-    If source account, destination account, and amount are available:
-
-    next_agent = service
+    - Do NOT output anything other than the TRANSFER instruction when next_agent = service.
 
     instructions =
-    TRANSFER from_account_number=<source_account> to_account_number=<destination_account> amount=<amount>
+    TRANSFER from_account_number=CUSTOMER_ACCOUNT_NUMBER to_account_number=ACCOUNT_NUMBER_1 amount=<amount>
 
 
     If the destination account is missing:
@@ -343,17 +354,17 @@ async def invoke_coordinator(state: AgentSate):
     Example:
 
     User:
-    Transfer $500 to account 123456
+    Transfer $500 to account ACCOUNT_NUMBER_1
 
     User account number:
-    100001
+    CUSTOMER_ACCOUNT_NUMBER
 
     Correct:
 
     next_agent = service
 
     instructions =
-    TRANSFER from_account_number=100001 to_account_number=123456 amount=500
+    TRANSFER from_account_number=CUSTOMER_ACCOUNT_NUMBER to_account_number=ACCOUNT_NUMBER_1 amount=500
 
 
     Example:
@@ -456,7 +467,7 @@ async def invoke_coordinator(state: AgentSate):
     Please provide your account number.
 
     CURRENT USER MESSAGE:
-    100001
+    ACCOUNT_NUMBER_1
 
     Do NOT return FINISH simply because CURRENT_RESPONSE exists.
 
@@ -553,20 +564,3 @@ async def invoke_coordinator(state: AgentSate):
 
 
     """
-
-    messages = [SystemMessage(content=prompt), HumanMessage(content=state.user_message)]
-    response = llm_with_structured_output.invoke(messages)
-
-    instructions = response.instructions
-
-    print(f"invoke_coordinator Response : {response}")
-    print(response.transaction_status)
-
-    return {
-        "next_node": response.next_agent,
-        "coordinator_response": instructions,
-        "messages": [AIMessage(content=instructions, name="COORDINATOR")],
-        "user_message": state.user_message,
-        "user_message_unmasked": state.user_message_unmasked,
-        "account_number": state.account_number
-    }

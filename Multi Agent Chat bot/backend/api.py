@@ -18,6 +18,8 @@ import uvicorn
 from backend.schemas import ChatResponse, ChatRequest
 from backend.agents.graphBuilder import get_workflow
 from langchain_core.messages import HumanMessage
+from langsmith.run_helpers import get_current_run_tree
+from langsmith import traceable
 
 workflow_app = None
 
@@ -30,6 +32,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 @app.post("/chatbot")
+@traceable(name="chat_endpoint")
 async def chat(request: ChatRequest):
     validated_message = validate_input(request.message)
     if validated_message["is_valid"] == False:
@@ -68,7 +71,23 @@ async def chat(request: ChatRequest):
             "messages": [HumanMessage(content=request.message, name="USER")]
         }
 
+        run_tree = get_current_run_tree()
+        if run_tree:
+            run_tree.add_event({
+                "thread_id": thread_id,
+                "user_message": request.message,
+                "account_number": request.account_number,
+                "thread_id": thread_id,
+                "messages": [HumanMessage(content=request.message, name="USER")]
+            })
+
+            run_tree.add_event("Starting the workflow....")
+
         result = await workflow_app.ainvoke(input_state, config=config)
+
+        if run_tree:
+            run_tree.add_event("Workflow completed.....")
+            run_tree.add_event({"coordinator_response": result["coordinator_response"]})
 
         messages = result["coordinator_response"]
 

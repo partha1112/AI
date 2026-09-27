@@ -116,3 +116,28 @@ graph TD
 The Multi-Agent Chatbot is a secure, intelligent, and scalable AI assistant. By breaking down complex tasks into specialized agents and utilizing a robust state graph architecture for context and memory, the system guarantees accurate, contextual, and continuous conversational experiences. 
 
 With built-in safeguards (Guardrails AI) and comprehensive testing frameworks (DeepEval), this project ensures enterprise-grade reliability and safety, offering a robust foundation for modern AI customer service platforms.
+
+---
+
+## 💰 7. Cost Estimation
+
+This section outlines the estimated operational costs of the Multi-Agent Chatbot, powered by `gpt-4o-mini` and Pinecone serverless vector database.
+
+### 📈 Cost Amplification (Why one request costs more)
+A single user request often translates to multiple LLM and API calls due to the multi-agent orchestration. This amplification includes:
+1. **Input Validation**: Guardrails AI checks the input for safety.
+2. **Retrieval from Pinecone**: Searching episodic memory (using `all-MiniLM-L6-v2` embeddings) and reranking results (using Pinecone's `bge-reranker-v2-m3`).
+3. **Coordinator Routing**: The Coordinator Agent evaluates context and routes the request.
+4. **Specialist Execution**: The assigned specialist agent (Accounts, Transactions, etc.) processes the task.
+
+### ⚠️ Failure Mode
+In the event of a failure (e.g., Guardrails rejecting a malicious input, or an agent failing to produce a structured output), the system may require additional fallback LLM calls or retry logic. Each retry adds roughly one extra LLM call to the total cost.
+
+### 💵 Cost Calculation
+
+Based on current `gpt-4o-mini` pricing ($0.150 / 1M input tokens, $0.600 / 1M output tokens):
+- **Average LLM Call**: ~$0.0005 (Assuming ~2,000 input tokens and ~300 output tokens)
+- **Cost per Request**: **~$0.0015 to $0.0020**
+  *(Calculated as 3 to 4 LLM calls per user message + minor Pinecone read/rerank costs)*
+- **Cost per Session**: **~$0.008 to $0.010**
+  *(Assuming an average session contains 4 requests, plus a final Summarize Agent call upon exiting the session)*

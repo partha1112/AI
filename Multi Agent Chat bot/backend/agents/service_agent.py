@@ -5,38 +5,59 @@ from backend.agents.llm import llm
 from langchain_mcp_adapters.tools import load_mcp_tools
 from mcp import ClientSession, StdioServerParameters, stdio_client
 from langgraph.prebuilt import create_react_agent
+import os
 
-
-server_params = StdioServerParameters(
-    command="python",
-    args=["mcp/service_server.py"]
-)
-
-server_params_transfer = StdioServerParameters(
-    command="python",
-    args=["mcp/transfer_server.py"]
-)
 
 
 async def invoke_service(state: AgentSate):
-    user_message = state.user_message_unmasked or state.user_message
+
+    env1 = {
+        **os.environ,
+        "CUSTOMER_ACCOUNT_NUMBER": str(state.account_number),
+    }
+
+    env2 = {}
+    if state.pii_mapping:
+        for key, value in state.pii_mapping.items():
+            env2[str(key)] = str(value)
+
+    env1.update(env2)
+
+    if "EMAIL_ADDRESS_1" in env1:
+        print( "EMAIL_ADDRESS_1 : " + env1["EMAIL_ADDRESS_1"])
+
+    server_params = StdioServerParameters(
+        command="python",
+        args=["mcp/service_server.py"],
+        env=env1
+    )
+
+    server_params_transfer = StdioServerParameters(
+        command="python",
+        args=["mcp/transfer_server.py"],
+        env=env1
+    )   
+
+    user_message = state.user_message_masked or state.user_message
 
     prompt = f"""You are a helpful service specialist.
     Your job is to analyze the user input and respond with the service information requested by the coordinator.
 
     coordinator_response = {state.coordinator_response}
-    account_number = {state.account_number}
+    
+    Use CUSTOMER_ACCOUNT_NUMBER to refer to the user's account number.
+    Use CUSTOMER_EMAIL_1 to refer to the user's email.
+    
 
     Important instructions:
-    - If the coordinator explicitly requests moving money between accounts, call the MCP tool `guarded_transfer(from_acc:int, to_acc:int, amount:float, approved:bool)`.
+    - If the coordinator explicitly requests moving money between accounts, call the MCP tool `guarded_transfer(from_acc:CUSTOMER_ACCOUNT_NUMBER, to_acc: ACCOUNT_NUMBER_1, amount:float, approved:bool)`.
         Provide exact numeric account IDs and a positive amount when invoking the tool. Set approved=True to bypass approval, or False if approval is needed.
     - Only call `guarded_transfer` when the coordinator asks to perform a transfer; do not call it for balance inquiries or other service requests.
-    - if coordinator_response contains text 'approved by user' or 'approved' then set approved = true else set approved = false 
-    - After calling the tool, return a brief confirmation summarizing the result (success or error). Do not display full account numbers in the final message—mask them (e.g., show last 4 digits) or summarize.
-    - For non-transfer service requests, answer using available account/service information without invoking transfer tools.
-    - If required details are missing (from/to account numbers or amount), ask a concise clarifying question instead of attempting a transfer.
+    - After calling the tool, return a brief confirmation summarizing the result (success or error).
+    - For non-transfer service requests, answer using available account/service information without invoking transfer tools.   
 
-    Follow these rules and produce a concise, user-facing response.
+    The customer's account information is available through the tool.
+    Do not ask the customer for an account number. 
     """
 
     async with stdio_client(server_params) as (read1, write1):

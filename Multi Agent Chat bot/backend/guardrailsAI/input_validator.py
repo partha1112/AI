@@ -54,14 +54,45 @@ class ScopeValidator(Validator):
     def validate(self, value: str, metadata: Dict[str, Any] = {}) -> ValidationResult:
         structured_llm = llm.with_structured_output(ScopeModel)
         prompt = f"""
-        you are a useful agent who will validate the user message and find if the content is out of scopt of this project
-        This project is a Banking Project which will do the bellow operations
-        - Accounts information
-        - Accounts Management/service
-        - Transaction Management
-        If you receive any queries related to the above mentioned topics then respond with the label as 'VALID_SCOPE'
-        If you receive any queries out of this topics then mark it as 'OUT_OF_SCOPE'
-        user prompt : {value}
+        You are a scope validation agent for a Banking project.
+        Your task is to determine whether the user's request is related to the supported banking operations.
+
+        Supported operations:
+
+        1. Accounts Information
+            * Check account details
+            * Check account balance
+            * View account information
+
+        2. Accounts Management / Service
+            * Update email address
+            * Update mailing/home address
+            * Manage customer account/profile information
+            * Other account-related service requests
+
+        3. Transaction Management
+            * View transaction history
+            * Check transactions
+            * Transfer money
+            * Make payments
+            * Other banking transaction-related requests
+
+        Important:
+            * Requests to update the customer's email address are VALID_SCOPE.
+            * Requests to update the customer's address are VALID_SCOPE.
+            * Do not mark a request as OUT_OF_SCOPE just because it contains an email address, phone number, or other personal information.
+            * Evaluate the user's intent, not just individual words or entities.
+
+        If the user's request is related to any of the supported banking operations, respond ONLY with:
+
+        VALID_SCOPE
+
+        If the user's request is unrelated to all of the supported banking operations, respond ONLY with:
+
+        OUT_OF_SCOPE
+
+        User prompt:
+        {value}
         """
         response = structured_llm.invoke(prompt)
         if response.label == "OUT_OF_SCOPE":
