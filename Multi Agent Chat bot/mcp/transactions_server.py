@@ -12,7 +12,10 @@ DB_URI = os.getenv("DB_URI")
 
 
 @mcp.tool()
-async def fetch_transactions( acc_number: int, start_date: str, end_date: str ) -> dict:
+async def fetch_transactions( start_date: str, end_date: str ) -> dict:
+    acc_number = os.getenv("CUSTOMER_ACCOUNT_NUMBER")
+    if not acc_number:
+        return {"error": "Account number is not available"}
     conn = await asyncpg.connect(DB_URI)
     try:
         query = 'SELECT * FROM public."Transactions" WHERE "accNumber" = $1'

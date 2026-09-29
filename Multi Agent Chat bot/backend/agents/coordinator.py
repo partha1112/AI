@@ -17,7 +17,6 @@ llm_with_structured_output = llm.with_structured_output(RouteResponse)
 
 pIIsaniatizer = PIISanitizer()
 
-@traceable(name="invoke_coordinator", run_type="agent")
 async def invoke_coordinator(state: AgentSate):
     
     if any(word in state.user_message.lower() for word in ["exit", "bye", "quit", "done", "thank you", "thanks"]):
@@ -73,7 +72,7 @@ async def invoke_coordinator(state: AgentSate):
 
     prompt = get_coordinator_prompt(state, date_context, user_summary, messages_history_str)
 
-    messages = [SystemMessage(content=prompt), HumanMessage(content=state.user_message_masked)]
+    messages = [SystemMessage(content=prompt), HumanMessage(content=state.user_message_masked or state.user_message)]
     response = llm_with_structured_output.invoke(messages)
 
     instructions = response.instructions

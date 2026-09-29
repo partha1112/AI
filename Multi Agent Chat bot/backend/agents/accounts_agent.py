@@ -9,7 +9,6 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import AIMessage
 import os
 
-@traceable(name="invoke_accounts", run_type="agent")
 async def invoke_accounts(state: AgentSate):
 
     server_params = StdioServerParameters(
