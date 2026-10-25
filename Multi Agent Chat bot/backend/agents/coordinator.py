@@ -1,4 +1,5 @@
 import re
+from backend.agents.model_router import invoke_model_router
 from backend.guardrailsAI.PIISaniatizer import PIISanitizer
 from langsmith import traceable
 from backend.memory.vector_store import get_summary
@@ -73,7 +74,16 @@ async def invoke_coordinator(state: AgentSate):
     prompt = get_coordinator_prompt(state, date_context, user_summary, messages_history_str)
 
     messages = [SystemMessage(content=prompt), HumanMessage(content=state.user_message_masked or state.user_message)]
-    response = llm_with_structured_output.invoke(messages)
+
+    router_response = invoke_model_router(state.user_message_masked)
+
+    local_llm = None
+    if router_response and router_response == 'low':
+        local_llm = llm_with_structured_output
+    else :
+        local_llm = llm_with_structured_output
+
+    response = local_llm.invoke(messages)
 
     instructions = response.instructions
 
